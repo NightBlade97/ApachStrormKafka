@@ -29,34 +29,25 @@ import org.apache.storm.tuple.ITuple;
  * An example that computes word counts and finally emits the results to an
  * external bolt (sink).
  */
-public class WordCountToBolt {
+public class WordCountToRedis {
     public static void main(String[] args) throws Exception {
         StreamBuilder builder = new StreamBuilder();
 
         // Redis config parameters for the RedisStoreBolt
         JedisPoolConfig poolConfig = new JedisPoolConfig.Builder()
             .setHost("127.0.0.1").setPort(6379).build();
-        // Storm tuple to redis key-value mapper
+
         RedisStoreMapper storeMapper = new WordCountStoreMapper();
-        // The redis bolt (sink)
+
         IRichBolt redisStoreBolt = new RedisStoreBolt(poolConfig, storeMapper);
 
-        // A stream of words
+    
         builder.newStream(new TestWordSpout(), new ValueMapper<String>(0))
-               /*
-                * create a stream of (word, 1) pairs
-                */
+
                .mapToPair(w -> Pair.of(w, 1))
-               /*
-                * aggregate the count
-                */
+      
                .countByKey()
-               /*
-                * The result of aggregation is forwarded to
-                * the RedisStoreBolt. The forwarded tuple is a
-                * key-value pair of (word, count) with ("key", "value")
-                * being the field names.
-                */
+  
                .to(redisStoreBolt);
 
         Config config = new Config();
@@ -68,7 +59,7 @@ public class WordCountToBolt {
         StormSubmitter.submitTopologyWithProgressBar(topoName, config, builder.build());
     }
 
-    // Maps a storm tuple to redis key and value
+
     private static class WordCountStoreMapper implements RedisStoreMapper {
         private final RedisDataTypeDescription description;
         private final String hashKey = "wordCount";
