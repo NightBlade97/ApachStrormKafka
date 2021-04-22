@@ -18,7 +18,7 @@ import org.example.demo.bolt.WriteRedisBolt;
 public class WordCountTopology {
 
     public static void main(String[] args) throws Exception {
-        // Конфигурация Redis
+
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig.Builder()
                 .setHost("127.0.0.1")
                 .setPort(6379)
@@ -26,11 +26,11 @@ public class WordCountTopology {
                 .build();
 
         String topic = "test";
-        // Этот класс преобразует входящую запись кафки в штормовой кортеж
+
         ByTopicRecordTranslator<String,String> brt = new ByTopicRecordTranslator<>(
                 (r) -> new Values(r.value(), r.topic()),
                 new Fields("sentence", topic));
-        // Устанавливаем тему для использования
+
         brt.forTopic(topic, (r) -> new Values(r.value(), r.topic()), new Fields("sentence", topic));
 
         KafkaSpoutConfig<String, String> kafkaSpoutConfig = KafkaSpoutConfig
@@ -49,12 +49,12 @@ public class WordCountTopology {
 
         Config config = new Config();
         if (args == null || args.length == 0) {
-            // локальный режим
+
             config.setDebug(true);
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("WordCountTopology", config, topology);
         } else {
-            // кластерный режим
+
             StormSubmitter.submitTopology(args[0],config,builder.createTopology());
         }
     }
